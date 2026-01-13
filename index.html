@@ -2,61 +2,60 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>Card Pop-out System</title>
-    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <title>Card Display System</title>
+    <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body { margin: 0; overflow: hidden; font-family: sans-serif; }
-        /* ポップアウト画像の設定 */
+        body { margin: 0; background-color: rgba(0,0,0,0); overflow: hidden; font-family: sans-serif; }
+        
+        /* ステータス確認用（OBSに映したくない場合は後で隠せます） */
+        #status-bar {
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px;
+            font-size: 18px;
+            border-bottom: 2px solid #00ff00;
+        }
+
         #key-card {
             position: fixed; top: 50%; left: 50%;
             transform: translate(-50%, -50%) scale(0.5);
             max-height: 80vh; opacity: 0;
             transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            pointer-events: none;
         }
         #key-card.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-        
-        /* 操作パネル（OBSでは映らないよう調整） */
-        #controller { background: rgba(0,0,0,0.8); color: white; padding: 20px; position: absolute; z-index: 100; }
-        .obs-hide { display: none; } /* OBSソースとして読み込む時はURLに ?mode=obs をつける */
     </style>
 </head>
 <body>
 
+    <div id="status-bar">システム起動中...</div>
     <img id="key-card" src="">
 
-    <div id="controller">
-        <h3>カード演出コントローラー</h3>
-        <p>あなたのID: <span id="my-id">接続中...</span></p>
-        <hr>
-        <input type="text" id="target-id" placeholder="接続先IDを入力">
-        <button onclick="connectToPeer()">1. 配信PCへ接続</button>
-        <br><br>
-        <button onclick="sendCard('card1.png')">カード1表示</button>
-        <button onclick="sendCard('card2.png')">カード2表示</button>
-        <button onclick="hideCard()">非表示</button>
-    </div>
-
     <script>
-        const peer = new Peer(); // Peerオブジェクトの作成
-        let conn;
+        const statusEl = document.getElementById('status-bar');
         const cardImg = document.getElementById('key-card');
-        const urlParams = new URLSearchParams(window.location.search);
 
-        // OBSモードなら操作パネルを隠す
-        if (urlParams.get('mode') === 'obs') {
-            document.getElementById('controller').classList.add('obs-hide');
-        }
-
-        // 自分のIDが表示されたら
-        peer.on('open', (id) => {
-            document.getElementById('my-id').innerText = id;
-            console.log('My ID:', id);
+        // PeerJSの初期化
+        const peer = new Peer({
+            debug: 3 // エラーログを詳細に出す設定
         });
 
-        // 接続を受けた時（表示側の処理）
-        peer.on('connection', (c) => {
-            conn = c;
+        // IDが発行されたら
+        peer.on('open', (id) => {
+            statusEl.innerHTML = "【接続待ち】このIDを操作側に設定してください：<b style='color:#00ff00'>" + id + "</b>";
+            console.log('ID:', id);
+        });
+
+        // ネットワークエラー等の処理
+        peer.on('error', (err) => {
+            statusEl.innerHTML = "【エラー】" + err.type + " : 通信がブロックされた可能性があります。";
+            statusEl.style.borderBottom = "2px solid red";
+        });
+
+        // 接続を受信したとき
+        peer.on('connection', (conn) => {
+            statusEl.innerHTML = "【接続済み】操作PCとリンクしました";
+            statusEl.style.borderBottom = "2px solid #00bfff";
+
             conn.on('data', (data) => {
                 if (data.action === 'show') {
                     cardImg.src = data.url;
@@ -66,23 +65,6 @@
                 }
             });
         });
-
-        // 接続する（操作側の処理）
-        function connectToPeer() {
-            const targetId = document.getElementById('target-id').value;
-            conn = peer.connect(targetId);
-            conn.on('open', () => alert('接続完了！'));
-        }
-
-        function sendCard(url) {
-            if(conn) conn.send({ action: 'show', url: url });
-        }
-
-        function hideCard() {
-            if(conn) conn.send({ action: 'hide' });
-        }
     </script>
 </body>
-
 </html>
-
