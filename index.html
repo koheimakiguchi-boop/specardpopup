@@ -6,39 +6,47 @@
     <style>
         body { margin: 0; background: transparent; overflow: hidden; font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", sans-serif; }
         
-        #card-wrapper {
-            position: fixed; top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            display: flex; flex-direction: column; align-items: center;
-            width: 100%;
-        }
+       #card-wrapper {
+    position: fixed; 
+    top: 50px;           /* 真ん中ではなく、上から50pxの位置に固定 */
+    left: 50%;
+    transform: translateX(-50%); /* 左右の中央揃えのみ維持 */
+    display: flex; 
+    flex-direction: column; 
+    align-items: center;
+    width: 100%;
+    max-height: calc(100vh - 100px); /* 画面内に収まるよう最大高さを制限 */
+}
 
-        /* カード画像 */
-        #key-card {
-            max-height: 70vh; 
-            opacity: 0;
-            transform: scale(0.5);
-            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            filter: drop-shadow(0 0 20px rgba(0,0,0,0.5));
-        }
-        #key-card.show { opacity: 1; transform: scale(1); }
+/* カード画像 */
+#key-card {
+    max-height: 60vh;    /* 画像のサイズを少し小さく（70vh → 60vh）して余裕を持たせる */
+    width: auto;         /* 横幅は自動調整 */
+    opacity: 0;
+    transform: scale(0.5);
+    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    filter: drop-shadow(0 0 20px rgba(0,0,0,0.5));
+}
+#key-card.show { opacity: 1; transform: scale(1); }
 
-        /* 説明文ボックス */
-        #card-text {
-            margin-top: 30px;
-            padding: 20px 40px;
-            background: rgba(0, 0, 0, 0.85);
-            color: white;
-            font-size: 32px;
-            font-weight: bold;
-            border-left: 8px solid #007bff;
-            border-radius: 4px;
-            opacity: 0;
-            transform: translateY(20px);
-            transition: all 0.5s ease;
-            text-align: center;
-            min-width: 400px;
-        }
+/* 説明文ボックス */
+#card-text {
+    margin-top: 20px;
+    padding: 15px 30px;
+    background: rgba(0, 0, 0, 0.85);
+    color: white;
+    font-size: 24px;      /* 文字が大きすぎると見切れるので少し調整（32px → 24px） */
+    font-weight: bold;
+    border-left: 8px solid #007bff;
+    border-radius: 4px;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.5s ease;
+    text-align: center;
+    width: 80%;           /* 横幅が広がりすぎないよう制限 */
+    max-width: 800px;
+    white-space: pre-wrap; /* 改行を反映させる（\n対策） */
+}
         #card-text.show { opacity: 1; transform: translateY(0); }
         
         #status { position: fixed; top: 0; left: 0; color: lime; background: rgba(0,0,0,0.5); font-size: 12px; }
@@ -85,3 +93,4 @@
     </script>
 </body>
 </html>
+
