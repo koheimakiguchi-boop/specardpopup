@@ -1,70 +1,53 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <title>Card Display System</title>
-    <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.2/dist/peerjs.min.js"></script>
-    <style>
-        body { margin: 0; background-color: rgba(0,0,0,0); overflow: hidden; font-family: sans-serif; }
-        
-        /* ステータス確認用（OBSに映したくない場合は後で隠せます） */
-        #status-bar {
-            background: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 10px;
-            font-size: 18px;
-            border-bottom: 2px solid #00ff00;
+<div id="card-wrapper">
+    <img id="key-card" class="hidden">
+    <div id="card-text" class="hidden"></div>
+</div>
+
+<style>
+    #card-wrapper {
+        position: fixed; top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        display: flex; flex-direction: column; align-items: center;
+    }
+
+    /* テキストボックスのデザイン */
+    #card-text {
+        margin-top: 20px;
+        padding: 15px 30px;
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        font-size: 24px;
+        font-weight: bold;
+        border-left: 5px solid #007bff;
+        border-radius: 5px;
+        min-width: 300px;
+        max-width: 600px;
+        opacity: 0;
+        transition: all 0.5s ease;
+    }
+
+    /* 表示時のアニメーション */
+    #card-text.show { opacity: 1; }
+</style>
+
+<script>
+    // JSの受信部分を修正
+    conn.on('data', (data) => {
+        const textEl = document.getElementById('card-text');
+        if (data.action === 'show') {
+            // 画像の表示
+            cardImg.src = data.url;
+            cardImg.classList.add('show');
+            
+            // テキストの表示
+            if (data.text) {
+                textEl.innerText = data.text;
+                textEl.classList.remove('hidden');
+                setTimeout(() => textEl.classList.add('show'), 200);
+            }
+        } else {
+            cardImg.classList.remove('show');
+            textEl.classList.remove('show');
         }
-
-        #key-card {
-            position: fixed; top: 50%; left: 50%;
-            transform: translate(-50%, -50%) scale(0.5);
-            max-height: 80vh; opacity: 0;
-            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        #key-card.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-    </style>
-</head>
-<body>
-
-    <div id="status-bar">システム起動中...</div>
-    <img id="key-card" src="">
-
-    <script>
-        const statusEl = document.getElementById('status-bar');
-        const cardImg = document.getElementById('key-card');
-
-        // PeerJSの初期化
-        const peer = new Peer({
-            debug: 3 // エラーログを詳細に出す設定
-        });
-
-        // IDが発行されたら
-        peer.on('open', (id) => {
-            statusEl.innerHTML = "【接続待ち】このIDを操作側に設定してください：<b style='color:#00ff00'>" + id + "</b>";
-            console.log('ID:', id);
-        });
-
-        // ネットワークエラー等の処理
-        peer.on('error', (err) => {
-            statusEl.innerHTML = "【エラー】" + err.type + " : 通信がブロックされた可能性があります。";
-            statusEl.style.borderBottom = "2px solid red";
-        });
-
-        // 接続を受信したとき
-        peer.on('connection', (conn) => {
-            statusEl.innerHTML = "【接続済み】操作PCとリンクしました";
-            statusEl.style.borderBottom = "2px solid #00bfff";
-
-            conn.on('data', (data) => {
-                if (data.action === 'show') {
-                    cardImg.src = data.url;
-                    cardImg.classList.add('show');
-                } else {
-                    cardImg.classList.remove('show');
-                }
-            });
-        });
-    </script>
-</body>
-</html>
+    });
+</script>
