@@ -1,53 +1,87 @@
-<div id="card-wrapper">
-    <img id="key-card" class="hidden">
-    <div id="card-text" class="hidden"></div>
-</div>
-
-<style>
-    #card-wrapper {
-        position: fixed; top: 50%; left: 50%;
-        transform: translate(-50%, -50%);
-        display: flex; flex-direction: column; align-items: center;
-    }
-
-    /* テキストボックスのデザイン */
-    #card-text {
-        margin-top: 20px;
-        padding: 15px 30px;
-        background: rgba(0, 0, 0, 0.8);
-        color: white;
-        font-size: 24px;
-        font-weight: bold;
-        border-left: 5px solid #007bff;
-        border-radius: 5px;
-        min-width: 300px;
-        max-width: 600px;
-        opacity: 0;
-        transition: all 0.5s ease;
-    }
-
-    /* 表示時のアニメーション */
-    #card-text.show { opacity: 1; }
-</style>
-
-<script>
-    // JSの受信部分を修正
-    conn.on('data', (data) => {
-        const textEl = document.getElementById('card-text');
-        if (data.action === 'show') {
-            // 画像の表示
-            cardImg.src = data.url;
-            cardImg.classList.add('show');
-            
-            // テキストの表示
-            if (data.text) {
-                textEl.innerText = data.text;
-                textEl.classList.remove('hidden');
-                setTimeout(() => textEl.classList.add('show'), 200);
-            }
-        } else {
-            cardImg.classList.remove('show');
-            textEl.classList.remove('show');
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <style>
+        body { margin: 0; background: transparent; overflow: hidden; font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", sans-serif; }
+        
+        #card-wrapper {
+            position: fixed; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex; flex-direction: column; align-items: center;
+            width: 100%;
         }
-    });
-</script>
+
+        /* カード画像 */
+        #key-card {
+            max-height: 70vh; 
+            opacity: 0;
+            transform: scale(0.5);
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            filter: drop-shadow(0 0 20px rgba(0,0,0,0.5));
+        }
+        #key-card.show { opacity: 1; transform: scale(1); }
+
+        /* 説明文ボックス */
+        #card-text {
+            margin-top: 30px;
+            padding: 20px 40px;
+            background: rgba(0, 0, 0, 0.85);
+            color: white;
+            font-size: 32px;
+            font-weight: bold;
+            border-left: 8px solid #007bff;
+            border-radius: 4px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+            text-align: center;
+            min-width: 400px;
+        }
+        #card-text.show { opacity: 1; transform: translateY(0); }
+        
+        #status { position: fixed; top: 0; left: 0; color: lime; background: rgba(0,0,0,0.5); font-size: 12px; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div id="status">PeerJS 起動中...</div>
+    <div id="card-wrapper">
+        <img id="key-card" src="">
+        <div id="card-text" class="hidden"></div>
+    </div>
+
+    <script>
+        const cardImg = document.getElementById('key-card');
+        const cardText = document.getElementById('card-text');
+        const statusEl = document.getElementById('status');
+        const peer = new Peer();
+
+        peer.on('open', (id) => {
+            statusEl.innerText = "接続ID: " + id;
+        });
+
+        peer.on('connection', (conn) => {
+            statusEl.innerText = "接続済み";
+            conn.on('data', (data) => {
+                if (data.action === 'show') {
+                    // 画像セット
+                    cardImg.src = data.url;
+                    cardImg.classList.add('show');
+                    // テキストセット
+                    if (data.text) {
+                        cardText.innerText = data.text;
+                        cardText.classList.remove('hidden');
+                        setTimeout(() => cardText.classList.add('show'), 100);
+                    }
+                } else {
+                    cardImg.classList.remove('show');
+                    cardText.classList.remove('show');
+                    setTimeout(() => cardText.classList.add('hidden'), 500);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
