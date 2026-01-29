@@ -4,93 +4,68 @@
     <meta charset="UTF-8">
     <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body { margin: 0; background: transparent; overflow: hidden; font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", sans-serif; }
+        body { 
+            margin: 0; 
+            background: transparent; 
+            overflow: hidden; 
+            font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", sans-serif; 
+        }
         
-       #card-wrapper {
-    position: fixed; 
-    top: 50px;           /* 真ん中ではなく、上から50pxの位置に固定 */
-    left: 50%;
-    transform: translateX(-50%); /* 左右の中央揃えのみ維持 */
-    display: flex; 
-    flex-direction: column; 
-    align-items: center;
-    width: 100%;
-    max-height: calc(100vh - 100px); /* 画面内に収まるよう最大高さを制限 */
-}
+        /* 1. ステータス表示を画面外へ（完全に消す場合は display: none） */
+        #status { 
+            display: none; 
+        }
 
-/* カード画像 */
-#key-card {
-    max-height: 60vh;    /* 画像のサイズを少し小さく（70vh → 60vh）して余裕を持たせる */
-    width: auto;         /* 横幅は自動調整 */
-    opacity: 0;
-    transform: scale(0.5);
-    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    filter: drop-shadow(0 0 20px rgba(0,0,0,0.5));
-}
-#key-card.show { opacity: 1; transform: scale(1); }
+        #card-wrapper {
+            position: fixed; 
+            top: 50px;       /* 上からの位置 */
+            left: 50px;      /* 2. 左からの位置（ここでお好みの左端位置を調整） */
+            display: flex; 
+            flex-direction: column; 
+            align-items: flex-start; /* 3. 子要素を左揃えにする */
+            width: auto;
+        }
 
-/* 説明文ボックス */
-#card-text {
-    margin-top: 20px;
-    padding: 15px 30px;
-    background: rgba(0, 0, 0, 0.85);
-    color: white;
-    font-size: 24px;      /* 文字が大きすぎると見切れるので少し調整（32px → 24px） */
-    font-weight: bold;
-    border-left: 8px solid #007bff;
-    border-radius: 4px;
-    opacity: 0;
-    transform: translateY(20px);
-    transition: all 0.5s ease;
-    text-align: center;
-    width: 80%;           /* 横幅が広がりすぎないよう制限 */
-    max-width: 800px;
-    white-space: pre-wrap; /* 改行を反映させる（\n対策） */
-}
+        /* カード画像 */
+        #key-card {
+            max-height: 60vh; 
+            opacity: 0;
+            transform: scale(0.5);
+            /* transform-origin を左上にすることで左に固定されたまま拡大 */
+            transform-origin: left top; 
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            filter: drop-shadow(0 0 20px rgba(0,0,0,0.5));
+        }
+        #key-card.show { opacity: 1; transform: scale(1); }
+
+        /* 説明文ボックス */
+        #card-text {
+            margin-top: 20px;
+            padding: 15px 30px;
+            background: rgba(0, 0, 0, 0.85);
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            border-left: 8px solid #007bff;
+            border-radius: 4px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+            text-align: left; /* 4. テキスト自体も左揃え */
+            max-width: 600px;
+            white-space: pre-wrap;
+        }
         #card-text.show { opacity: 1; transform: translateY(0); }
         
-        #status { position: fixed; top: 0; left: 0; color: lime; background: rgba(0,0,0,0.5); font-size: 12px; }
         .hidden { display: none; }
     </style>
 </head>
 <body>
-    <div id="status">PeerJS 起動中...</div>
-    <div id="card-wrapper">
+    <div id="status"></div> <div id="card-wrapper">
         <img id="key-card" src="">
         <div id="card-text" class="hidden"></div>
     </div>
 
-    <script>
-        const cardImg = document.getElementById('key-card');
-        const cardText = document.getElementById('card-text');
-        const statusEl = document.getElementById('status');
-        const peer = new Peer();
 
-        peer.on('open', (id) => {
-            statusEl.innerText = "接続ID: " + id;
-        });
 
-        peer.on('connection', (conn) => {
-            statusEl.innerText = "接続済み";
-            conn.on('data', (data) => {
-                if (data.action === 'show') {
-                    // 画像セット
-                    cardImg.src = data.url;
-                    cardImg.classList.add('show');
-                    // テキストセット
-                    if (data.text) {
-                        cardText.innerText = data.text;
-                        cardText.classList.remove('hidden');
-                        setTimeout(() => cardText.classList.add('show'), 100);
-                    }
-                } else {
-                    cardImg.classList.remove('show');
-                    cardText.classList.remove('show');
-                    setTimeout(() => cardText.classList.add('hidden'), 500);
-                }
-            });
-        });
-    </script>
-</body>
-</html>
 
