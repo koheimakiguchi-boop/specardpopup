@@ -16,15 +16,22 @@
             display: none; 
         }
 
-        /* 画面左上に配置するコンテナ */
+     /* 画面左上に配置するコンテナ */
         #card-wrapper {
             position: fixed; 
-            top: 50px;       /* 上からの距離 */
-            left: 50px;      /* 左からの距離 */
+            top: 50px;       
+            left: 50px;      
             display: flex; 
             flex-direction: column; 
-            align-items: flex-start; /* 左揃え */
+            align-items: flex-start; /* これで子要素（画像の箱とテキスト）が左に寄る */
             width: auto;
+        }
+
+        /* 画像を包むコンテナ（ここが重要） */
+        .img-container {
+            display: flex;
+            justify-content: flex-start; /* 左寄せ */
+            width: 100%;
         }
 
         /* カード画像の設定 */
@@ -32,15 +39,22 @@
             max-height: 60vh; 
             opacity: 0;
             transform: scale(0.5);
-            transform-origin: left top; /* 左上を起点に拡大 */
+            /* 1. 支点を center（中央）に戻す */
+            transform-origin: center center; 
             transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             filter: drop-shadow(0 0 20px rgba(0,0,0,0.5));
         }
-        #key-card.show { opacity: 1; transform: scale(1); }
+        
+        /* 2. 表示時のアニメーション。scale(1) で中央から広がる */
+        #key-card.show { 
+            opacity: 1; 
+            transform: scale(1); 
+        }
 
         /* 説明文ボックスの設定 */
         #card-text {
             margin-top: 20px;
+            /* ...以下、前回までの設定と同じ... */
             padding: 15px 30px;
             background: rgba(0, 0, 0, 0.85);
             color: white;
@@ -51,7 +65,7 @@
             opacity: 0;
             transform: translateY(20px);
             transition: all 0.5s ease;
-            text-align: left; /* テキスト左揃え */
+            text-align: left;
             max-width: 600px;
             white-space: pre-wrap;
         }
@@ -118,3 +132,4 @@
     </script>
 </body>
 </html>
+
