@@ -11,50 +11,47 @@
             font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", sans-serif; 
         }
         
-        /* 1. ステータス表示を完全に消す設定 */
         #status { 
             display: none; 
         }
 
-     /* 画面左上に配置するコンテナ */
+        /* 全体を左上に固定するコンテナ */
         #card-wrapper {
             position: fixed; 
             top: 50px;       
             left: 50px;      
             display: flex; 
             flex-direction: column; 
-            align-items: flex-start; /* これで子要素（画像の箱とテキスト）が左に寄る */
+            align-items: flex-start; /* これで子要素を左に寄せる */
             width: auto;
         }
 
-        /* 画像を包むコンテナ（ここが重要） */
+        /* 【重要】画像を包む箱。これがあることで、画像が中央から拡大しても左揃えが維持されます */
         .img-container {
             display: flex;
-            justify-content: flex-start; /* 左寄せ */
+            justify-content: flex-start;
             width: 100%;
+            /* 画像が拡大した時にコンテナからはみ出しても切れないようにする */
+            overflow: visible; 
         }
 
-        /* カード画像の設定 */
         #key-card {
             max-height: 60vh; 
             opacity: 0;
             transform: scale(0.5);
-            /* 1. 支点を center（中央）に戻す */
+            /* 支点を中央に設定 */
             transform-origin: center center; 
             transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             filter: drop-shadow(0 0 20px rgba(0,0,0,0.5));
         }
         
-        /* 2. 表示時のアニメーション。scale(1) で中央から広がる */
         #key-card.show { 
             opacity: 1; 
             transform: scale(1); 
         }
 
-        /* 説明文ボックスの設定 */
         #card-text {
             margin-top: 20px;
-            /* ...以下、前回までの設定と同じ... */
             padding: 15px 30px;
             background: rgba(0, 0, 0, 0.85);
             color: white;
@@ -78,7 +75,9 @@
     <div id="status" style="display: block; position: fixed; top: 0; left: 0; color: white; background: rgba(0,0,0,0.5); font-size: 10px; z-index: 999;">PeerJS 起動中...</div>
 
     <div id="card-wrapper">
-        <img id="key-card" src="">
+        <div class="img-container">
+            <img id="key-card" src="">
+        </div>
         <div id="card-text" class="hidden"></div>
     </div>
 
@@ -89,31 +88,24 @@
 
         const peer = new Peer();
 
-        // IDが発行されたら表示（接続用に一時的に見えるようにしています）
         peer.on('open', (id) => {
             statusEl.innerText = "接続ID: " + id;
-            console.log("ID:", id);
         });
 
-        // 接続を受け取った時の処理
         peer.on('connection', (conn) => {
-            statusEl.style.display = "none"; // 接続されたらID表示を消す
+            statusEl.style.display = "none";
             
             conn.on('data', (data) => {
                 if (data.action === 'show') {
-                    // 画像の処理
                     cardImg.src = data.url;
                     cardImg.classList.add('show');
                     
-                    // テキストの処理
                     if (data.text) {
                         cardText.innerText = data.text;
                         cardText.classList.remove('hidden');
-                        // アニメーションのために少し遅らせてクラス付与
                         setTimeout(() => cardText.classList.add('show'), 100);
                     }
                 } else {
-                    // 非表示処理
                     cardImg.classList.remove('show');
                     cardText.classList.remove('show');
                     setTimeout(() => {
@@ -123,7 +115,6 @@
             });
         });
 
-        // エラーハンドリング
         peer.on('error', (err) => {
             statusEl.style.display = "block";
             statusEl.innerText = "エラー: " + err.type;
@@ -132,4 +123,3 @@
     </script>
 </body>
 </html>
-
