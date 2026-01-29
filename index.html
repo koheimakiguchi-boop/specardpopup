@@ -15,31 +15,29 @@
             display: none; 
         }
 
-        /* 全体を左上に固定するコンテナ */
+        /* 画面左上に配置するコンテナ */
         #card-wrapper {
             position: fixed; 
-            top: 50px;       
+            top: 40px;       /* 少し上に詰めて余裕を持たせる */
             left: 50px;      
             display: flex; 
             flex-direction: column; 
-            align-items: flex-start; /* これで子要素を左に寄せる */
+            align-items: flex-start; 
             width: auto;
+            max-width: 700px; /* 全体の最大幅 */
         }
 
-        /* 【重要】画像を包む箱。これがあることで、画像が中央から拡大しても左揃えが維持されます */
         .img-container {
             display: flex;
             justify-content: flex-start;
             width: 100%;
-            /* 画像が拡大した時にコンテナからはみ出しても切れないようにする */
             overflow: visible; 
         }
 
         #key-card {
-            max-height: 60vh; 
+            max-height: 55vh; /* テキストのために画像を少しだけ小さく調整 */
             opacity: 0;
             transform: scale(0.5);
-            /* 支点を中央に設定 */
             transform-origin: center center; 
             transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             filter: drop-shadow(0 0 20px rgba(0,0,0,0.5));
@@ -50,21 +48,25 @@
             transform: scale(1); 
         }
 
+        /* 説明文ボックスの設定 */
         #card-text {
             margin-top: 20px;
-            padding: 15px 30px;
-            background: rgba(0, 0, 0, 0.85);
+            padding: 15px 25px;
+            /* 高級感のあるグラデーション背景 */
+            background: linear-gradient(to right, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.7));
             color: white;
-            font-size: 24px;
             font-weight: bold;
-            border-left: 8px solid #007bff;
+            border-left: 6px solid #007bff;
             border-radius: 4px;
             opacity: 0;
             transform: translateY(20px);
-            transition: all 0.5s ease;
+            transition: all 0.5s ease, font-size 0.3s ease; /* サイズ変更も滑らかに */
             text-align: left;
-            max-width: 600px;
+            width: fit-content;
+            max-width: 650px;
             white-space: pre-wrap;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            line-height: 1.4;
         }
         #card-text.show { opacity: 1; transform: translateY(0); }
         
@@ -97,15 +99,31 @@
             
             conn.on('data', (data) => {
                 if (data.action === 'show') {
+                    // 1. 画像の処理
                     cardImg.src = data.url;
                     cardImg.classList.add('show');
                     
+                    // 2. テキストの処理
                     if (data.text) {
                         cardText.innerText = data.text;
+                        
+                        // --- 文字数によるフォントサイズ自動調整 ---
+                        const len = data.text.length;
+                        if (len > 150) {
+                            cardText.style.fontSize = "16px"; // 非常に長い
+                        } else if (len > 80) {
+                            cardText.style.fontSize = "19px"; // 長め
+                        } else if (len > 40) {
+                            cardText.style.fontSize = "22px"; // 中くらい
+                        } else {
+                            cardText.style.fontSize = "26px"; // 短い（強調）
+                        }
+
                         cardText.classList.remove('hidden');
                         setTimeout(() => cardText.classList.add('show'), 100);
                     }
                 } else {
+                    // 非表示処理
                     cardImg.classList.remove('show');
                     cardText.classList.remove('show');
                     setTimeout(() => {
