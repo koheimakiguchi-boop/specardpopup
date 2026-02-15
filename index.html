@@ -83,7 +83,7 @@
         <div id="card-text" class="hidden"></div>
     </div>
 
-    <script>
+   <script>
         const cardImg = document.getElementById('key-card');
         const cardText = document.getElementById('card-text');
         const statusEl = document.getElementById('status');
@@ -99,35 +99,40 @@
             
             conn.on('data', (data) => {
                 if (data.action === 'show') {
-                    // 1. 画像の処理
-                    cardImg.src = data.url;
-                    cardImg.classList.add('show');
-                    
-                    // 2. テキストの処理
-                    if (data.text) {
-                        cardText.innerText = data.text;
-                        
-                        // --- 文字数によるフォントサイズ自動調整 ---
-                        const len = data.text.length;
-                        if (len > 150) {
-                            cardText.style.fontSize = "16px"; // 非常に長い
-                        } else if (len > 80) {
-                            cardText.style.fontSize = "19px"; // 長め
-                        } else if (len > 40) {
-                            cardText.style.fontSize = "22px"; // 中くらい
-                        } else {
-                            cardText.style.fontSize = "26px"; // 短い（強調）
-                        }
+                    // --- 改善ポイント1：先に非表示状態にしてから中身を入れ替える ---
+                    cardImg.classList.remove('show');
+                    cardText.classList.remove('show');
 
-                        cardText.classList.remove('hidden');
-                        setTimeout(() => cardText.classList.add('show'), 100);
-                    }
+                    // わずかな待ち時間を作って、前の画像をリセット
+                    setTimeout(() => {
+                        // 画像とテキストを更新
+                        cardImg.src = data.url;
+                        cardText.innerText = data.text || "";
+
+                        // フォントサイズ調整
+                        const len = (data.text || "").length;
+                        if (len > 150) cardText.style.fontSize = "16px";
+                        else if (len > 80) cardText.style.fontSize = "19px";
+                        else if (len > 40) cardText.style.fontSize = "22px";
+                        else cardText.style.fontSize = "26px";
+
+                        // 準備ができたら表示
+                        cardImg.classList.add('show');
+                        if (data.text) {
+                            cardText.classList.remove('hidden');
+                            setTimeout(() => cardText.classList.add('show'), 50);
+                        }
+                    }, 50); // 50ミリ秒だけ「空」の時間を作ることで残像を防ぐ
+
                 } else {
                     // 非表示処理
                     cardImg.classList.remove('show');
                     cardText.classList.remove('show');
+                    
+                    // --- 改善ポイント2：アニメーションが終わったタイミングでsrcを空にする ---
                     setTimeout(() => {
                         cardText.classList.add('hidden');
+                        cardImg.src = ""; // 次回表示時に前回の画像が出ないようにクリア
                     }, 500);
                 }
             });
@@ -141,3 +146,4 @@
     </script>
 </body>
 </html>
+
